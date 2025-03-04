@@ -1,386 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <base target="_top">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Quick Start - Leaflet</title>
+    <title>Pokazywator</title>
 
-    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico"/>
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="css/zoom.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="rastercoords.js"></script>
-
-    <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
-    .leaflet-container {
-        height: 800px;
-        width: 1000px;
-        max-width: 100%;
-        max-height: 100%;
-    }
-    .info {
-    padding: 6px 8px;
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-}
-.info h4 {
-    margin: 0 0 5px;
-    color: #777;
-}
-        .marker-form {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            width: 300px;
-        }
-        .marker-form.active {
-            display: block;
-        }
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        .overlay.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        textarea {
-            height: 100px;
-            resize: vertical;
-        }        
-        .button-group {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button.primary {
-            background-color: #4CAF50;
-            color: white;
-        }
-        button.secondary {
-            background-color: #f44336;
-            color: white;
-        }
-        button.tertiary {
-            background-color: #2196F3;
-            color: white;
-        }
-        .icon-preview {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        .icon-option {
-            text-align: center;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 4px;
-        }
-        .icon-option.selected {
-            background-color: #e0e0e0;
-        }
-        .icon-option img {
-        }
-
-    </style>
-
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/rastercoords.js"></script>
 </head>
+
 <body>
-
-<div class="marker-form" id="marker-form">
-    <h2 id="form-title">Add Marker</h2>
-
-    <div class="form-group">
-        <label for="marker-title">Title:</label>
-        <input type="text" id="marker-title" placeholder="Enter title">
-    </div>
-
-    <div class="form-group">
-        <label for="marker-description">Description:</label>
-        <textarea id="marker-description" placeholder="Enter description"></textarea>
-    </div>
-
-    <div class="form-group">
-        <label for="marker-icon">Icon:</label>
-        <div id="marker-icon" class="icon-preview">
-            <div class="icon-option" data-icon="default">
-                <img src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png" alt="Default">
-            </div>
-            <div class="icon-option" data-icon="left">
-                <img src="/icons/icons8-down-left-100.png" alt="left">
-            </div>
-            <div class="icon-option" data-icon="right">
-                <img src="/icons/icons8-down-right-100.png" alt="right">
-            </div>
-            <div class="icon-option" data-icon="top">
-                <img src="/icons/icons8-up-left-100.png" alt="top">
+    <div class="marker-form" id="marker-form">
+        <h2 id="form-title">Dodaj znacznik</h2>
+        <div class="form-group">
+            <label for="marker-title">Nazwa:</label>
+            <input type="text" id="marker-title" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+            <label for="marker-description">Opis:</label>
+            <textarea id="marker-description" placeholder="Enter description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="marker-icon">Ikona:</label>
+            <div id="marker-icon" class="icon-preview">
+                <div class="icon-option" data-icon="default">
+                    <img src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png"
+                        alt="Default">
+                </div>
+                <div class="icon-option" data-icon="left">
+                    <img src="/icons/icons8-down-left-100.png" alt="left">
+                </div>
+                <div class="icon-option" data-icon="right">
+                    <img src="/icons/icons8-down-right-100.png" alt="right">
+                </div>
+                <div class="icon-option" data-icon="top">
+                    <img src="/icons/icons8-up-left-100.png" alt="top">
+                </div>
             </div>
         </div>
+        <div class="button-group">
+            <button id="save-marker" class="primary">Zapis</button>
+            <button id="cancel-marker" class="tertiary">Analuj</button>
+            <button id="delete-marker" class="secondary">Kasuj</button>
+        </div>
     </div>
-
-    <div class="button-group">
-        <button id="save-marker" class="primary">Save</button>
-        <button id="cancel-marker" class="tertiary">Cancel</button>
-        <button id="delete-marker" class="secondary">Delete</button>
-    </div>
-</div>
-<div class="overlay" id="overlay"></div>
-<div id="map" style="width: 100%; height: 100%;"></div>
-<script>
-    const markerForm = document.getElementById('marker-form')
-    const overlay = document.getElementById('overlay')
-    const formTitle = document.getElementById('form-title');
-    const markerTitleInput = document.getElementById('marker-title');
-    const markerDescriptionInput = document.getElementById('marker-description');
-    const saveMarkerBtn = document.getElementById('save-marker');
-    const cancelMarkerBtn = document.getElementById('cancel-marker');
-    const deleteMarkerBtn = document.getElementById('delete-marker');
-    const iconOptions = document.querySelectorAll('.icon-option');
-    const icons = {
-            default: L.icon({
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                shadowSize: [41, 41]
-            }),
-            left: L.icon({
-                iconUrl: '/icons/icons8-down-left-100.png',
-                iconSize: [41, 33],
-                iconAnchor: [41, 16],
-                popupAnchor: [1, -34],
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                shadowSize: [41, 41]
-            }),
-            right: L.icon({
-                iconUrl: '/icons/right.png',
-                iconSize: [41, 33],
-                iconAnchor: [41, 16],
-                popupAnchor: [1, -34],
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                shadowSize: [41, 41]
-            }),
-            top: L.icon({
-                iconUrl: '/icons/top.png',
-                iconSize: [41, 33],
-                iconAnchor: [41, 16],
-                popupAnchor: [1, -34],
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                shadowSize: [41, 41]
-            }),
-        };    
-
-        // Variables
-        let markers = [];
-        let currentMarker = null;
-        let selectedIcon = 'default';
-    
-        function selectIcon(iconName) {
-            selectedIcon = iconName;
-            resetIconSelection();
-            
-            // Highlight selected icon
-            document.querySelector(`.icon-option[data-icon="${iconName}"]`).classList.add('selected');
-        }
-
-        function resetIconSelection() {
-            iconOptions.forEach(option => {
-                option.classList.remove('selected');
-            });
-            //selectedIcon = 'default';
-        }
-    
-       function showForm(isEdit = false) {
-            overlay.classList.add('active');
-            markerForm.classList.add('active');
-            
-            if (isEdit) {
-                formTitle.textContent = 'Edit Marker';
-                deleteMarkerBtn.style.display = 'block';
-            } else {
-                formTitle.textContent = 'Add Marker';
-                deleteMarkerBtn.style.display = 'none';
-            }
-        }
-
-        function hideForm() {
-            overlay.classList.remove('active');
-            markerForm.classList.remove('active');
-            markerTitleInput.value = '';
-            markerDescriptionInput.value = '';
-            resetIconSelection();
-        }    
-
-        iconOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                selectIcon(this.getAttribute('data-icon'));
-            });
-        });
-
-        function updateMarker() {
-            if (!currentMarker) return;
-
-            currentMarker.title = markerTitleInput.value || 'Untitled Marker';
-            currentMarker.description = markerDescriptionInput.value || 'No description';
-            currentMarker.icon = selectedIcon;
-console.log(selectedIcon);
-            // Update marker on map
-            currentMarker.marker.setIcon(icons[selectedIcon]);
-            currentMarker.marker.bindPopup(`<b>${currentMarker.title}</b><br>${currentMarker.description}`);
-            
-            hideForm();
-            currentMarker = null;
-        }
-
-    function editMarker(markerData) {
-            currentMarker = markerData;
-            markerTitleInput.value = markerData.title;
-            markerDescriptionInput.value = markerData.description;
-            selectIcon(markerData.icon);
-            showForm(true);
-    }
-    
-        saveMarkerBtn.addEventListener('click', function() {
-            if (currentMarker && currentMarker.id) {
-                updateMarker();
-            } else if (currentMarker && currentMarker.latlng) {
-                addMarker(currentMarker.latlng);
-                hideForm();
-                currentMarker = null;
-            }
-        });
-
-        cancelMarkerBtn.addEventListener('click', function() {
-            hideForm();
-            currentMarker = null;
-        });
-
-        deleteMarkerBtn.addEventListener('click', function() {
-            deleteCurrentMarker();
-        });
-
-        function deleteCurrentMarker() {
-            if (!currentMarker) return;
-            currentMarker.marker.remove()
-            
-            const index = markers.findIndex(m => m.id === currentMarker.id);
-            if (index !== -1) {
-                markers.splice(index, 1);
-            }
-            
-            hideForm();
-            currentMarker = null;
-        }
-
-
-    function addMarker(map, latlng, title, description) {
-     var marker=L.marker(latlng, {draggable: true }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
-     const markerData = {
-                id: Date.now(), // Simple unique identifier
-                marker: marker,
-                title: title || 'Untitled Marker',
-                description: description || 'No description',
-                icon: selectedIcon || icons.default,
-                latlng: latlng
-     }     
-     marker.on('dragend', function(e) {
-        //legend.update(e.target)
-     })
-     marker.on('contextmenu', function(e) {
-        //var text2=this._popup.getContent() 
-        editMarker(markerData)
-        //this._popup.setContent(text)
-        //legend.update(this)
-     })
-    }
-
-    function initMap(target, config) {
-    const map = L.map('map',{ crs: L.CRS.Simple, minZoom: config.minZoom, maxZoom: config.maxZoom})
-    var rc = new L.RasterCoords(map, [config.width,config.height])
-    bounds = rc.getMaxBounds()
-    map.setView(bounds.getCenter(), 3)
-    
-    var legend = L.control({position: 'bottomright'});
-    legend.onAdd = function (map) {
-	this.button = L.DomUtil.create('button', 'info')
-	this.button.innerHTML= "Dodaj marker"
-	return this.button
-    }
-    legend.update = function(marker) {
-      //coord = rc.project(marker.getLatLng())
-      //this.div.innerHTML = `<b>${marker._popup.getContent()}</b><br>${coord}`
-    }
-    legend.addTo(map)
-
-    const tiles = L.tileLayer(`/${target}/{z}/{x}/{y}.png`, {
-    bounds: bounds,
-    attribution: config.description
-    }).addTo(map);
-    if (!config.markers) config.markers=[]
-    config.markers.forEach(element => {
-      addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description)
-    })
-
-    function onMapClick(event) {
-     var coord = rc.project(event.latlng)
-     addMarker(map, event.latlng, "nowy", "no description")
-    }
-    map.on('click', onMapClick)
-    }
-
-    target = window.location.hash.substring(1)
-    if (target=='') target="default"
-    console.log(target)
-    fetch(`${target}/config.json`)
-      .then(response => response.json())
-      .then(config => {
-         initMap(target, config)
-      }).catch(error => { console.error(error) })
-
-</script>
+    <div class="overlay" id="overlay"></div>
+    <div id="map" style="width: 100%; height: 100%;"></div>
+    <script src="js/zoom.js"></script>
