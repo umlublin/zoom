@@ -1,0 +1,58 @@
+{
+    "default": {
+        "iconUrl": "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+        "iconSize": [25, 41],
+        "iconAnchor": [12, 41],
+        "popupAnchor": [1, -34],
+        "shadowUrl": "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+        "shadowSize": [41, 41]
+    },
+    "down-left": {
+        "iconUrl": "/icons/icons8-down-left-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [0, 41],
+        "popupAnchor": [21, -34]
+    },
+    "down-right": {
+        "iconUrl": "/icons/icons8-down-right-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [41, 41],
+        "popupAnchor": [-20, -34]
+    },
+    "up-left": {
+        "iconUrl": "/icons/icons8-up-left-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [0, 0],
+        "popupAnchor": [20, 1]
+   },
+    "up-right": {
+        "iconUrl": "/icons/icons8-up-right-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [0, 41],
+        "popupAnchor": [20, -30]
+    },
+    "down": {
+        "iconUrl": "/icons/icons8-down-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [20, 41],
+        "popupAnchor": [1, -34]
+    },
+    "up": {
+        "iconUrl": "/icons/icons8-up-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [20, 1],
+        "popupAnchor": [1, 1]
+    },
+    "left": {
+        "iconUrl": "/icons/icons8-left-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [0, 16],
+        "popupAnchor": [20, -5]
+    },
+    "right": {
+        "iconUrl": "/icons/icons8-right-41.png",
+        "iconSize": [41, 41],
+        "iconAnchor": [41, 16],
+        "popupAnchor": [-20, -5]
+    }
+}
