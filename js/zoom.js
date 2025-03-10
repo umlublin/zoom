@@ -13,6 +13,17 @@ let markers = [];
 let currentMarker = null;
 let selectedIcon = 'default';
 let icons = {};
+let userdata = {};
+
+// Fetch icons configuration
+fetch('userdata.json')
+    .then(response => response.json())
+    .then(data => {
+        userdata = data;
+        console.log(data);
+    })
+    .catch(error => console.error('Error loading userdata:', error));
+
 
 // Fetch icons configuration
 fetch('icons/icons.json')
@@ -173,10 +184,15 @@ function initMap(target, config) {
     bounds = rc.getMaxBounds();
     map.setView(bounds.getCenter(), 3);
 
-    var legend = L.control({ position: 'bottomright' });
+    var legend = L.control({ position: 'topleft' });
     legend.onAdd = function (map) {
         this.button = L.DomUtil.create('button', 'info');
-        this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
+        if (userdata.name) {
+            this.button.innerHTML = `<img src="${userdata.picture}"><br>${userdata.name}<a href='/logout'><br>Wyloguj</a>`;
+        }
+        else {
+            this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
+        }
         return this.button;
     };
     legend.update = function (marker) {

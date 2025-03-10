@@ -7,10 +7,13 @@ from flask import Flask, redirect, render_template, session, url_for, send_from_
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
+    print("Load .env values from", ENV_FILE)
     load_dotenv(ENV_FILE)
     
 app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
+MY_URL = env.get("MY_URL")
+print("MY_URL", MY_URL)
 
 oauth = OAuth(app)
 
@@ -27,7 +30,7 @@ oauth.register(
 @app.route("/login")
 def login():
     return oauth.auth0.authorize_redirect(
-        redirect_uri="https://zoom.ar.lublin.pl/callback" #url_for("callback", _external=True)
+        redirect_uri=f'{env.get("MY_URL")}callback'
     )
 
 @app.route("/callback", methods=["GET", "POST"])
@@ -44,7 +47,7 @@ def logout():
         + "/v2/logout?"
         + urlencode(
             {
-                "returnTo": "https://zoom.ar.lublin.pl/",
+                "returnTo": f'{env.get("MY_URL")}',
                 "client_id": env.get("AUTH0_CLIENT_ID"),
             },
             quote_via=quote_plus,
@@ -71,7 +74,7 @@ def send_css(path):
 def userdata():
     userdata={}
     if session.get('user'):
-      userdata=session.get('user')['userinfo']
+      userdata=json.dumps(session.get('user')['userinfo'])
     return render_template("userdata.json", session=True, pretty=userdata)
     
 @app.route("/")
