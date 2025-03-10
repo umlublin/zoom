@@ -113,7 +113,8 @@
 
     .icon-preview {
         display: flex;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        justify-content: left;
         margin-top: 10px;
     }
 
@@ -122,10 +123,14 @@
         cursor: pointer;
         padding: 5px;
         border-radius: 4px;
+        min-width: 41px;
     }
 
     .icon-option.selected {
         background-color: #e0e0e0;
+        box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+        border: 1px solid #ccc;
+        transform: translateY(2px);
     }
 
     .icon-option img {}

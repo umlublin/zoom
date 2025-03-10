@@ -1,53 +1,60 @@
-const markerForm = document.getElementById('marker-form')
-const overlay = document.getElementById('overlay')
+const markerForm = document.getElementById('marker-form');
+const overlay = document.getElementById('overlay');
 const formTitle = document.getElementById('form-title');
 const markerTitleInput = document.getElementById('marker-title');
 const markerDescriptionInput = document.getElementById('marker-description');
 const saveMarkerBtn = document.getElementById('save-marker');
 const cancelMarkerBtn = document.getElementById('cancel-marker');
 const deleteMarkerBtn = document.getElementById('delete-marker');
-const iconOptions = document.querySelectorAll('.icon-option');
-const icons = {
-    default: L.icon({
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        shadowSize: [41, 41]
-    }),
-    left: L.icon({
-        iconUrl: '/icons/icons8-down-left-100.png',
-        iconSize: [41, 33],
-        iconAnchor: [41, 16],
-        popupAnchor: [1, -34],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        shadowSize: [41, 41]
-    }),
-    right: L.icon({
-        iconUrl: '/icons/right.png',
-        iconSize: [41, 33],
-        iconAnchor: [41, 16],
-        popupAnchor: [1, -34],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        shadowSize: [41, 41]
-    }),
-    top: L.icon({
-        iconUrl: '/icons/top.png',
-        iconSize: [41, 33],
-        iconAnchor: [41, 16],
-        popupAnchor: [1, -34],
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-        shadowSize: [41, 41]
-    }),
-};
+const markerIconDiv = document.getElementById('marker-icon');
 
 // Variables
 let markers = [];
 let currentMarker = null;
 let selectedIcon = 'default';
+let icons = {};
+
+// Fetch icons configuration
+fetch('icons.json')
+    .then(response => response.json())
+    .then(data => {
+        icons = Object.keys(data).reduce((acc, key) => {
+            acc[key] = L.icon(data[key]);
+            return acc;
+        }, {});
+        loadIconsToDiv(data);
+    })
+    .catch(error => console.error('Error loading icons:', error));
+
+target = window.location.hash.substring(1);
+if (target == '') target = "default";
+console.log(target);
+fetch(`${target}/config.json`)
+        .then(response => response.json())
+        .then(config => initMap(target, config))
+        .catch(error => console.error(error));    
+
+function loadIconsToDiv(data) {
+    markerIconDiv.innerHTML = ''; // Clear existing icons
+    Object.keys(data).forEach(iconName => {
+        const iconOption = document.createElement('div');
+        iconOption.classList.add('icon-option');
+        iconOption.setAttribute('data-icon', iconName);
+        iconOption.innerHTML = `<img src="${data[iconName].iconUrl}" alt="${iconName}">`;
+        markerIconDiv.appendChild(iconOption);
+        console.log(iconName)
+    });
+    // Re-attach event listeners to the new icon options
+    const iconOptions = document.querySelectorAll('.icon-option');
+    iconOptions.forEach(option => {
+        option.addEventListener('click', function () {
+            selectIcon(this.getAttribute('data-icon'));
+        });
+    });
+}
 
 function selectIcon(iconName) {
+    console.log(iconName)
     selectedIcon = iconName;
     resetIconSelection();
 
@@ -56,6 +63,7 @@ function selectIcon(iconName) {
 }
 
 function resetIconSelection() {
+    const iconOptions = document.querySelectorAll('.icon-option');
     iconOptions.forEach(option => {
         option.classList.remove('selected');
     });
@@ -82,12 +90,6 @@ function hideForm() {
     markerDescriptionInput.value = '';
     resetIconSelection();
 }
-
-iconOptions.forEach(option => {
-    option.addEventListener('click', function () {
-        selectIcon(this.getAttribute('data-icon'));
-    });
-});
 
 function updateMarker() {
     if (!currentMarker) return;
@@ -133,7 +135,7 @@ deleteMarkerBtn.addEventListener('click', function () {
 
 function deleteCurrentMarker() {
     if (!currentMarker) return;
-    currentMarker.marker.remove()
+    currentMarker.marker.remove();
 
     const index = markers.findIndex(m => m.id === currentMarker.id);
     if (index !== -1) {
@@ -144,67 +146,59 @@ function deleteCurrentMarker() {
     currentMarker = null;
 }
 
-
-function addMarker(map, latlng, title, description) {
-    var marker = L.marker(latlng, { draggable: true }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
+function addMarker(map, latlng, title, description, icon) {
+    var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
         id: Date.now(), // Simple unique identifier
         marker: marker,
         title: title || 'Untitled Marker',
         description: description || 'No description',
-        icon: selectedIcon || icons.default,
+        icon: icon || 'default',
         latlng: latlng
-    }
+    };
     marker.on('dragend', function (e) {
         //legend.update(e.target)
-    })
+    });
     marker.on('contextmenu', function (e) {
         //var text2=this._popup.getContent()
-        editMarker(markerData)
+        editMarker(markerData);
         //this._popup.setContent(text)
         //legend.update(this)
-    })
+    });
 }
 
 function initMap(target, config) {
-    const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.minZoom, maxZoom: config.maxZoom })
-    var rc = new L.RasterCoords(map, [config.width, config.height])
-    bounds = rc.getMaxBounds()
-    map.setView(bounds.getCenter(), 3)
+    const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.minZoom, maxZoom: config.maxZoom });
+    var rc = new L.RasterCoords(map, [config.width, config.height]);
+    bounds = rc.getMaxBounds();
+    map.setView(bounds.getCenter(), 3);
 
     var legend = L.control({ position: 'bottomright' });
     legend.onAdd = function (map) {
-        this.button = L.DomUtil.create('button', 'info')
-        this.button.innerHTML = "Dodaj marker"
-        return this.button
-    }
+        this.button = L.DomUtil.create('button', 'info');
+        this.button.innerHTML = "Dodaj marker";
+        return this.button;
+    };
     legend.update = function (marker) {
         //coord = rc.project(marker.getLatLng())
         //this.div.innerHTML = `<b>${marker._popup.getContent()}</b><br>${coord}`
-    }
-    legend.addTo(map)
+    };
+    legend.addTo(map);
 
     const tiles = L.tileLayer(`/${target}/{z}/{x}/{y}.png`, {
         bounds: bounds,
         attribution: config.description
     }).addTo(map);
-    if (!config.markers) config.markers = []
+
+    if (!config.markers) config.markers = [];
     config.markers.forEach(element => {
-        addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description)
-    })
+        addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
+    });
 
     function onMapClick(event) {
-        var coord = rc.project(event.latlng)
-        addMarker(map, event.latlng, "nowy", "no description")
+        var coord = rc.project(event.latlng);
+        addMarker(map, event.latlng, "nowy", "no description", "up-left");
     }
-    map.on('click', onMapClick)
+    map.on('click', onMapClick);
 }
 
-target = window.location.hash.substring(1)
-if (target == '') target = "default"
-console.log(target)
-fetch(`${target}/config.json`)
-    .then(response => response.json())
-    .then(config => {
-        initMap(target, config)
-    }).catch(error => { console.error(error) })
