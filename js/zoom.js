@@ -15,7 +15,7 @@ let selectedIcon = 'default';
 let icons = {};
 
 // Fetch icons configuration
-fetch('icons.json')
+fetch('icons/icons.json')
     .then(response => response.json())
     .then(data => {
         icons = Object.keys(data).reduce((acc, key) => {
@@ -176,7 +176,7 @@ function initMap(target, config) {
     var legend = L.control({ position: 'bottomright' });
     legend.onAdd = function (map) {
         this.button = L.DomUtil.create('button', 'info');
-        this.button.innerHTML = "Dodaj marker";
+        this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         return this.button;
     };
     legend.update = function (marker) {

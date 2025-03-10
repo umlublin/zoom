@@ -1,0 +1,5 @@
+{% if session %}
+{{pretty}}
+{% else %}
+{}
+{% endif %}
