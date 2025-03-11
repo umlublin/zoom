@@ -20,7 +20,6 @@ fetch('userdata.json')
     .then(response => response.json())
     .then(data => {
         userdata = data;
-        console.log(data);
     })
     .catch(error => console.error('Error loading userdata:', error));
 
@@ -38,9 +37,10 @@ fetch('icons/icons.json')
     .catch(error => console.error('Error loading icons:', error));
 
 target = window.location.hash.substring(1);
+console.log(target);
 if (target == '') target = "default";
 console.log(target);
-fetch(`${target}/config.json`)
+fetch(`tiles/${target}/config.json`)
         .then(response => response.json())
         .then(config => initMap(target, config))
         .catch(error => console.error(error));    
@@ -53,7 +53,6 @@ function loadIconsToDiv(data) {
         iconOption.setAttribute('data-icon', iconName);
         iconOption.innerHTML = `<img src="${data[iconName].iconUrl}" alt="${iconName}">`;
         markerIconDiv.appendChild(iconOption);
-        console.log(iconName)
     });
     // Re-attach event listeners to the new icon options
     const iconOptions = document.querySelectorAll('.icon-option');
@@ -108,7 +107,6 @@ function updateMarker() {
     currentMarker.title = markerTitleInput.value || 'Untitled Marker';
     currentMarker.description = markerDescriptionInput.value || 'No description';
     currentMarker.icon = selectedIcon;
-    console.log(selectedIcon);
     // Update marker on map
     currentMarker.marker.setIcon(icons[selectedIcon]);
     currentMarker.marker.bindPopup(`<b>${currentMarker.title}</b><br>${currentMarker.description}`);
@@ -201,7 +199,7 @@ function initMap(target, config) {
     };
     legend.addTo(map);
 
-    const tiles = L.tileLayer(`/${target}/{z}/{x}/{y}.png`, {
+    const tiles = L.tileLayer(`/tiles/${target}/{z}/{x}/{y}.png`, {
         bounds: bounds,
         attribution: config.description
     }).addTo(map);

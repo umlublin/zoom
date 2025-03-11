@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload with Progress</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .upload-container {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .upload-container.highlight {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        #fileInput {
+            display: none;
+        }
+        .upload-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .upload-btn:hover {
+            background-color: #0069d9;
+        }
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #28a745;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.2s;
+        }
+        .status {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .file-details {
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Upload</h1>
+    
+    <div class="upload-container" id="dropArea">
+        <p>Drag & drop your file here or click to select</p>
+        <input type="file" id="fileInput">
+        <button class="upload-btn" id="selectFileBtn">Select File</button>
+    </div>
+    
+    <div class="file-details" id="fileDetails">
+        <p>Selected file: <span id="fileName"></span></p>
+        <button class="upload-btn" id="uploadBtn">Upload File</button>
+    </div>
+    
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div id="progressText">0%</div>
+    </div>
+    
+    <div class="status" id="status"></div>
+    
+    <script src="js/upload.js"></script>
+</body>
+</html>

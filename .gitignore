@@ -2,6 +2,7 @@
 bin/
 lib/
 lib64/
+tiles/
 __pycache__/
 *.py[cod]
 *$py.class

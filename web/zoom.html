@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Pokazywator</title>
+
+    <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="css/zoom.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/rastercoords.js"></script>
+</head>
+
+<body>
+    <div class="marker-form" id="marker-form">
+        <h2 id="form-title">Dodaj znacznik</h2>
+        <div class="form-group">
+            <label for="marker-title">Nazwa:</label>
+            <input type="text" id="marker-title" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+            <label for="marker-description">Opis:</label>
+            <textarea id="marker-description" placeholder="Enter description"></textarea>
+        </div>
+        <div class="form-group">
+            <div id="marker-icon" class="icon-preview">
+            </div>
+        </div>
+        <div class="button-group">
+            <button id="save-marker" class="primary">Zapis</button>
+            <button id="cancel-marker" class="tertiary">Anuluj</button>
+            <button id="delete-marker" class="secondary">Kasuj</button>
+        </div>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div id="map" style="width: 100%; height: 100%;"></div>
+    <script src="js/zoom.js"></script>
