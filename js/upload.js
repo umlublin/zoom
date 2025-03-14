@@ -1,7 +1,16 @@
+let userdata = {};
+let allowed_types = ['image/jpeg', 'image/png', 'image/tiff'];
+
+// Fetch icons configuration
+fetch('userdata.json')
+    .then(response => response.json())
+    .then(data => {
+        userdata = data;
+    })
+    .catch(error => console.error('Error loading userdata:', error));
+
 document.addEventListener('DOMContentLoaded', function() {
     const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('fileInput');
-    const selectFileBtn = document.getElementById('selectFileBtn');
     const uploadBtn = document.getElementById('uploadBtn');
     const fileDetails = document.getElementById('fileDetails');
     const fileName = document.getElementById('fileName');
@@ -11,16 +20,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const status = document.getElementById('status');
 
     selectedFile = null;
-    
-    // Handle file selection via button
-    selectFileBtn.addEventListener('click', () => {
-        fileInput.click();
-    });
-    
-    // Handle file selection change
-    fileInput.addEventListener('change', (e) => {
-        handleFiles(e.target.files);
-    });
     
     // Prevent default behavior for drag events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -51,18 +50,23 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle dropped files
     dropArea.addEventListener('drop', (e) => {
+        if (userdata.email == null) {
+            status.innerHTML = 'Please <a href="/login">login</a> first.';
+            return;
+        }
+        status.textContent = '';  
         const dt = e.dataTransfer;
         selectedFile = dt.files[0];
-        handleFiles(selectedFile);
-        console.log(selectedFile);
+        console.log(selectedFile.type)
+        if (allowed_types.indexOf(selectedFile.type) == -1) {;
+            status.textContent = `File type ${selectedFile.type} not allowed.`;
+            return;
+        }
+        fileName.textContent = selectedFile.name;
+        fileDetails.style.display = 'block';
     });
     
-    // Handle the selected files
-    function handleFiles(file) {
-        fileName.textContent = file.name;
-        fileDetails.style.display = 'block';
-    }
-        // Handle the upload button click
+    // Handle the upload button click
     uploadBtn.addEventListener('click', () => {
         if (selectedFile === null) {
             status.textContent = 'Please select a file first.';
@@ -89,12 +93,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Setup completion handler
         xhr.addEventListener('load', () => {
+            console.log(xhr);
+            const response = JSON.parse(xhr.responseText);
             if (xhr.status >= 200 && xhr.status < 300) {
-                const response = JSON.parse(xhr.responseText);
-                status.textContent = `Upload complete! File "${response.original_name}" saved as "${response.result}".`;
+                status.textContent = `Upload complete! File "${response.original_name}" saved".`;
                 status.style.color = 'green';
+                status.innerHTML += `<br><a href="/zoom#${response.uuid}"><img src="/tiles/${response.uuid}/preview.png"></a>`;
             } else {
-                status.textContent = 'Upload failed.';
+                status.textContent = `Upload failed "${response.error}".`;
                 status.style.color = 'red';
             }
         });

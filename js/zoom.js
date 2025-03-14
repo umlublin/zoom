@@ -7,6 +7,7 @@ const saveMarkerBtn = document.getElementById('save-marker');
 const cancelMarkerBtn = document.getElementById('cancel-marker');
 const deleteMarkerBtn = document.getElementById('delete-marker');
 const markerIconDiv = document.getElementById('marker-icon');
+const saveButton = document.getElementById('save-button');
 
 // Variables
 let markers = [];
@@ -40,7 +41,7 @@ target = window.location.hash.substring(1);
 console.log(target);
 if (target == '') target = "default";
 console.log(target);
-fetch(`tiles/${target}/config.json`)
+fetch(`zoom/${target}.json`)
         .then(response => response.json())
         .then(config => initMap(target, config))
         .catch(error => console.error(error));    
@@ -156,6 +157,7 @@ function deleteCurrentMarker() {
 }
 
 function addMarker(map, latlng, title, description, icon) {
+    console.log(icon);
     var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
         id: Date.now(), // Simple unique identifier
@@ -165,6 +167,7 @@ function addMarker(map, latlng, title, description, icon) {
         icon: icon || 'default',
         latlng: latlng
     };
+    markers.push(markerData);
     marker.on('dragend', function (e) {
         //legend.update(e.target)
     });
@@ -177,7 +180,7 @@ function addMarker(map, latlng, title, description, icon) {
 }
 
 function initMap(target, config) {
-    const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.minZoom, maxZoom: config.maxZoom });
+    const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.min_zoom, maxZoom: config.max_zoom });
     var rc = new L.RasterCoords(map, [config.width, config.height]);
     bounds = rc.getMaxBounds();
     map.setView(bounds.getCenter(), 3);
@@ -187,23 +190,72 @@ function initMap(target, config) {
         this.button = L.DomUtil.create('button', 'info');
         if (userdata.name) {
             this.button.innerHTML = `<img src="${userdata.picture}"><br>${userdata.name}<a href='/logout'><br>Wyloguj</a>`;
+            this.button.innerHTML += "<br><a href='/upload'>Dodaj nowy obraz</a>";
         }
         else {
             this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         }
+        this.button.innerHTML += "<br><a href='/'>Strona główna</a>";
+
+        config.markers = JSON.parse(config.markers);
+        if (!config.markers) config.markers = [];
+        config.markers.forEach(element => {
+            addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
+        });
+        
         return this.button;
     };
-    legend.update = function (marker) {
-        //coord = rc.project(marker.getLatLng())
-        //this.div.innerHTML = `<b>${marker._popup.getContent()}</b><br>${coord}`
-    };
     legend.addTo(map);
+
+    var toolbox = L.control({ position: 'bottomleft' });
+    toolbox.onAdd = function (map) {
+        box= L.DomUtil.create('div', 'toolbox');
+        box.innerHTML += "<button id='save-button'><img src='/icons/icons8-save-100.png'></button>";
+        box.onclick = function (e) {
+            markersToSend = [];
+            markers.forEach(element => {
+                res = {};
+                res.x = rc.project(element.marker.getLatLng()).x;
+                res.y = rc.project(element.marker.getLatLng()).y;
+                res.title = element.title;
+                res.description = element.description;
+                res.icon = element.icon;    
+                markersToSend.push(res);  
+            });
+            markersToSend = JSON.stringify(markersToSend);
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            
+            formData.append('markers', markersToSend);
+
+            xhr.addEventListener('load', () => {
+                console.log(xhr);
+                const response = JSON.parse(xhr.responseText);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    console.log(response);
+                } else {
+                    console.log(response);
+                }
+            });
+            
+            xhr.addEventListener('error', () => {
+                console.log('Upload failed. Network error');
+            });
+
+            xhr.open('POST',`/markers/${target}`, true);
+            xhr.send(formData);
+        }
+        return box;
+    }
+    toolbox.addTo(map);
 
     const tiles = L.tileLayer(`/tiles/${target}/{z}/{x}/{y}.png`, {
         bounds: bounds,
         attribution: config.description
     }).addTo(map);
 
+    
+    config.markers = JSON.parse(config.markers);
     if (!config.markers) config.markers = [];
     config.markers.forEach(element => {
         addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);

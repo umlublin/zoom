@@ -1,16 +1,149 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Auth0 Example</title>
-  </head>
-  <body>
-    {% if session %}
-        <h1>Welcome {{session}}!</h1>
-        <p><a href="/logout">Logout</a></p>
-        <div><pre>{{pretty}}</pre></div>
-    {% else %}
-        <h1>Welcome Guest</h1>
-        <p><a href="/login">Login</a></p>
-    {% endif %}
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mark & zoom</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .header img {
+      height: 50px;
+    }
+
+    .header h1 {
+      font-size: 3em;
+      color: #007bff;
+      text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+      margin: 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-grow: 0;
+    }
+
+    .image-preview div {
+      position: relative;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 10px;
+      text-align: center;
+      width: 200px;
+      overflow: hidden;
+    }
+
+    .image-preview img {
+      max-width: 100%;
+      border-radius: 4px;
+    }
+
+    .image-preview a {
+      text-decoration: none;
+      color: white;
+    }
+
+    .image-preview a:hover {
+      text-decoration: underline;
+    }
+
+    .image-preview .description {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 10px;
+      box-sizing: border-box;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      transform: translateY(100%);
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .image-preview div:hover .description {
+      transform: translateY(0);
+    }
+
+    .image-preview .description p {
+      margin: 5px 0;
+    }
+
+    .image-preview .description p:first-child {
+      display: block;
+    }
+
+    .image-preview .description p:not(:first-child) {
+      display: none;
+    }
+
+    .image-preview div:hover .description p {
+      display: block;
+    }
+
+    footer {
+      text-align: center;
+      padding: 10px;
+      background-color: #f4f4f4;
+      border-top: 1px solid #ddd;
+      margin-top: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/icons/icons8-search.svg" alt="Mark & zoom" />
+    <h1>Mark & zoom</h1>
+  </div>
+  <div class="image-preview">
+    {% for file in files %}
+    <div>
+      <a href="/zoom#{{ file.uuid }}">
+        <img src="/tiles/{{ file.uuid }}/preview.png" alt="{{ file.description }}" min-width="256" min-height="256" />
+      </a>
+      <div class="description">
+        <p>{{ file.description | truncate(32) }}</p>
+        <p>by <a href="/profil/{{ file.uploader }}/">{{ file.uploader }}</a></p>
+        <p>{{ file.width }} x {{ file.height }} px</p>
+        <!-- <p>{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</p> -->
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div>
+    Upload your images <a href="/upload">here</a>.
+  </div>
+  <footer>Icons by <a target="_blank" href="https://icons8.com">Icons8</a></footer>
+</body>
+
 </html>
