@@ -15,9 +15,6 @@ if ENV_FILE:
     print("Load .env values from", ENV_FILE)
     load_dotenv(ENV_FILE)
 
-
-
-    
 app = Flask(__name__)
 app.secret_key = env.get("APP_SECRET_KEY")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uploads.db'
@@ -38,7 +35,7 @@ class FileUpload(db.Model):
     tile_size = db.Column(db.Integer, nullable=False)
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     uploader = db.Column(db.String(32), nullable=False)
-    markers = db.Column(db.String(10000), nullable=True)
+    markers = db.Column(db.String(100000), nullable=True)
     def __repr__(self):
         return f'<FileUpload {self.uuid}>'
 
@@ -117,7 +114,7 @@ def handle_foo_exception(e):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if session.get('user'):
+    if not session.get('user'):
         return jsonify({'error': 'You need to be logged in to upload files'}), 403
     userdata=session.get('user')['userinfo']
 
