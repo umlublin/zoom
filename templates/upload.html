@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="css/upload.css">
 </head>
 <body>
+    {% if userdata %}
+    <div class="user-info">
+      {{ userdata.nickname }}<br>
+      <img src="{{ userdata.picture }}"><br>
+      <a href="/logout">Logout</a><br>
+      <a href="/">Home</a>
+    </div>
+    {% else %}
+    <div class="user-info">
+      <a href="/login">Login</a>
+    </div>
+    {% endif %}    
     <div class="header">
         <img src="/icons/icons8-search.svg" alt="Mark & zoom" />
         <h1>Mark & zoom</h1>

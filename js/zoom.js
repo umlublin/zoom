@@ -285,11 +285,11 @@ function initMap(target, config) {
     toolbox.onAdd = function (map) {
         box = L.DomUtil.create('div', 'toolbox');
         save_button = L.DomUtil.create('button', 'save-button');
-        save_button.innerHTML = "<img src='/icons/icons8-save-100.png'>";
+        save_button.innerHTML = "<img src='/icons/icons8-save-100.png' alt='Zapisanie zmian'>";
         delete_button = L.DomUtil.create('button', 'delete-button');
-        delete_button.innerHTML = "<img src='/icons/icons8-delete-100.png'>";
+        delete_button.innerHTML = "<img src='/icons/icons8-delete-100.png' alt='Skasowanie obrazu'>";
         edit_button = L.DomUtil.create('button', 'edit-button');
-        edit_button.innerHTML = "<img src='/icons/icons8-edit-property-100.png'>";
+        edit_button.innerHTML = "<img src='/icons/icons8-edit-property-100.png' alt='Edycja nazwy'>";
         box.appendChild(save_button);
         box.appendChild(edit_button);
         box.appendChild(delete_button);

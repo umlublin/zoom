@@ -11,6 +11,9 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import shutil
 
+PUBLIC=0
+PRIVATE=1
+
 ENV_FILE = find_dotenv()
 if ENV_FILE:
     print("Load .env values from", ENV_FILE)
@@ -29,6 +32,7 @@ class FileUpload(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(36), nullable=False)
     description = db.Column(db.String(200), nullable=False)
+    type=db.Column(db.Integer, nullable=False, default=PUBLIC)
     width = db.Column(db.Integer, nullable=False)
     height = db.Column(db.Integer, nullable=False)
     min_zoom = db.Column(db.Integer, default=2)
@@ -37,6 +41,7 @@ class FileUpload(db.Model):
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     uploader = db.Column(db.String(32), nullable=False)
     markers = db.Column(db.String(100000), nullable=True)
+    login = db.Column(db.String(32), nullable=True)
     def __repr__(self):
         return f'<FileUpload {self.uuid}>'
 
@@ -54,6 +59,15 @@ oauth.register(
     },
     server_metadata_url=f'https://{env.get("AUTH0_DOMAIN")}/.well-known/openid-configuration'
 )
+
+def is_logged_in():
+    return session.get('user')
+
+def get_user_data(): 
+    userdata={}
+    if session.get('user'):
+      userdata=session.get('user')['userinfo']
+    return userdata
 
 @app.route("/login")
 def login():
@@ -100,24 +114,17 @@ def send_css(path):
 
 @app.route("/userdata.json")
 def userdata():
-    userdata={}
-    if session.get('user'):
-      userdata=session.get('user')['userinfo']
-    return jsonify(userdata)
-
-@app.route("/upload")
-def upload_html():
-    return send_from_directory("web", "upload.html")
+    return jsonify(get_user_data())
 
 @app.errorhandler(400)
-def handle_foo_exception(e):
+def handle_exception(e):
     return jsonify(error=str(e)), 400
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if not session.get('user'):
+    if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to upload files'}), 403
-    userdata=session.get('user')['userinfo']
+    userdata=get_user_data()
 
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -137,7 +144,9 @@ def upload_file():
                               min_zoom=result['min_zoom'],
                               max_zoom=result['max_zoom'],
                               tile_size=result['tile_size'],
-                              uploader=userdata['name']))
+                              uploader=userdata['name'],
+                              login=userdata['sub'],
+                              type=PUBLIC))
     db.session.commit()
 
     return jsonify({
@@ -153,7 +162,7 @@ def upload_file():
 
 @app.route("/rename/<uuid>", methods=['POST'])
 def rename_image(uuid):
-    if not session.get('user'):
+    if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to rename files'}), 403  
     FileUpload.query.filter_by(uuid=uuid).update(dict(description=request.form['description']))
     db.session.commit()
@@ -161,7 +170,7 @@ def rename_image(uuid):
 
 @app.route("/delete/<uuid>", methods=['DELETE'])
 def delete_image(uuid):
-    if not session.get('user'):
+    if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to delete files'}), 403
     FileUpload.query.filter_by(uuid=uuid).delete()
     db.session.commit() 
@@ -175,13 +184,23 @@ def zoom():
 
 @app.route("/markers/<uuid>", methods=['POST'])
 def upload_markers(uuid):
-    if not session.get('user'):
+    if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to upload markers'}), 403
     print("uuid", uuid)
     print("request", request.form)
     FileUpload.query.filter_by(uuid=uuid).update(dict(markers=request.form['markers']))
     db.session.commit()
     return jsonify({'success': True})
+
+@app.route("/markers/<uuid>.json")
+def markers_json(uuid):
+    file = FileUpload.query.filter_by(uuid=uuid).first()
+    if not file:
+        return jsonify({'error': 'No such file'}), 404
+    return jsonify({
+        'uuid': file.uuid,
+        'markers': file.markers
+    })
 
 
 @app.route("/zoom/<uuid>.json")
@@ -201,10 +220,14 @@ def zoom_json(uuid):
         'upload_date': file.upload_date.strftime('%Y-%m-%d %H:%M:%S')
     })
 
+@app.route("/upload")
+def upload_html():
+    return render_template("upload.html", userdata=get_user_data())
+
 @app.route("/")
 def home():
     files = FileUpload.query.order_by(FileUpload.upload_date.desc()).all()
-    return render_template("index.html", files=files)
+    return render_template("index.html", files=files, userdata=get_user_data())
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=env.get("PORT", 3000))

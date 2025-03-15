@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         fileName.textContent = selectedFile.name;
         fileDetails.style.display = 'block';
+        status.textContent = '';
+        status.style.color = 'black';
+        progressBar.style.width = '0%'; 
+        progressBar.style.display = 'block';
+        progressContainer.style.display = 'none';
     });
     
     // Handle the upload button click
@@ -115,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         progressContainer.style.display = 'block';
         progressBar.style.width = '0%';
         progressText.textContent = '0%';
-        status.textContent = 'Uploading...';
+        status.textContent = 'Uploading and converting to tiles, please wait ...';
         status.style.color = 'black';
         
         // Send the request

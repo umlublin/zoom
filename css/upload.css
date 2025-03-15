@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    max-width: 800px;
+    /* max-width: 800px; */
     margin: 0 auto;
     padding: 20px;
 }
@@ -42,7 +42,7 @@ h1 {
 
 .upload-container.highlight {
     border-color: #007bff;
-    background-color: #f8f9fa;
+    background-color: #1673d1;
 }
 
 #fileInput {
