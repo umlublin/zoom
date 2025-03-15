@@ -13,6 +13,7 @@ const saveButton = document.getElementById('save-button');
 let markers = [];
 let currentMarker = null;
 let selectedIcon = 'default';
+let config = {};
 let icons = {};
 let userdata = {};
 
@@ -29,22 +30,25 @@ fetch('userdata.json')
 fetch('icons/icons.json')
     .then(response => response.json())
     .then(data => {
+        console.log(data);
         icons = Object.keys(data).reduce((acc, key) => {
             acc[key] = L.icon(data[key]);
             return acc;
         }, {});
+        loadMapConfig();
         loadIconsToDiv(data);
     })
     .catch(error => console.error('Error loading icons:', error));
 
-target = window.location.hash.substring(1);
-console.log(target);
-if (target == '') target = "default";
-console.log(target);
-fetch(`zoom/${target}.json`)
-        .then(response => response.json())
-        .then(config => initMap(target, config))
-        .catch(error => console.error(error));    
+function loadMapConfig() {
+    const target = window.location.hash.substring(1);
+    if (target == '') target = "default";
+    fetch(`zoom/${target}.json`)
+            .then(response => response.json())
+            .then(config => initMap(target, config))
+            .catch(error => console.error(error));    
+}
+  
 
 function loadIconsToDiv(data) {
     markerIconDiv.innerHTML = ''; // Clear existing icons
@@ -157,6 +161,7 @@ function deleteCurrentMarker() {
 }
 
 function addMarker(map, latlng, title, description, icon) {
+    console.log("ikony" ,icons);
     console.log(icon);
     var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
@@ -167,6 +172,7 @@ function addMarker(map, latlng, title, description, icon) {
         icon: icon || 'default',
         latlng: latlng
     };
+
     markers.push(markerData);
     marker.on('dragend', function (e) {
         //legend.update(e.target)
@@ -176,6 +182,14 @@ function addMarker(map, latlng, title, description, icon) {
         editMarker(markerData);
         //this._popup.setContent(text)
         //legend.update(this)
+    });
+}
+
+function loadMarkers(map, rc, markers) {    
+    console.log("load markers", markers);
+    if (!markers) markers = [];
+    markers.forEach(element => {
+        addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
     });
 }
 
@@ -196,16 +210,12 @@ function initMap(target, config) {
             this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         }
         this.button.innerHTML += "<br><a href='/'>Strona główna</a>";
-
-        config.markers = JSON.parse(config.markers);
-        if (!config.markers) config.markers = [];
-        config.markers.forEach(element => {
-            addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
-        });
-        
+       
         return this.button;
     };
     legend.addTo(map);
+
+    loadMarkers(map, rc, JSON.parse(config.markers));
 
     var toolbox = L.control({ position: 'bottomleft' });
     toolbox.onAdd = function (map) {
@@ -255,12 +265,6 @@ function initMap(target, config) {
     }).addTo(map);
 
     
-    config.markers = JSON.parse(config.markers);
-    if (!config.markers) config.markers = [];
-    config.markers.forEach(element => {
-        addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
-    });
-
     function onMapClick(event) {
         var coord = rc.project(event.latlng);
         addMarker(map, event.latlng, "nowy", "no description", "up-left");
