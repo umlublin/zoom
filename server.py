@@ -151,8 +151,16 @@ def upload_file():
         'tile_size': result['tile_size']
     })
 
+@app.route("/rename/<uuid>", methods=['POST'])
+def rename_image(uuid):
+    if not session.get('user'):
+        return jsonify({'error': 'You need to be logged in to rename files'}), 403  
+    FileUpload.query.filter_by(uuid=uuid).update(dict(description=request.form['description']))
+    db.session.commit()
+    return jsonify({'success': True})
+
 @app.route("/delete/<uuid>", methods=['DELETE'])
-def delete_file(uuid):
+def delete_image(uuid):
     if not session.get('user'):
         return jsonify({'error': 'You need to be logged in to delete files'}), 403
     FileUpload.query.filter_by(uuid=uuid).delete()

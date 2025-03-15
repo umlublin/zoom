@@ -5,7 +5,7 @@ import json
 import uuid
 from flask import abort
 
-Image.MAX_IMAGE_PIXELS: int | None = int(512 * 1024 * 1024) # 512 MB  
+Image.MAX_IMAGE_PIXELS = int(512 * 1024 * 1024) # 512 MB  
 
 def tile_split(sciezka_do_obrazu, tile_size=256):
     try:

@@ -45,7 +45,13 @@ function loadMapConfig() {
     if (target == '') target = "default";
     fetch(`zoom/${target}.json`)
         .then(response => response.json())
-        .then(config => initMap(target, config))
+        .then(config_json => {
+            config = config_json;
+            document.title = `Mark & Zoom : ${config.description}`;
+            // document.getElementById("title").innerHTML = config.title;
+            initMap(target, config)
+        }
+        )
         .catch(error => console.error(error));
 }
 
@@ -229,12 +235,25 @@ function saveMarkers(rc, target) {
 }
 
 function deleteImage(target) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('DELETE', `/delete/${target}`, true);
-    xhr.send();
-    message = "Obraz został usunięty";
-    alert(message);
-    window.location.href = '/';
+    if (confirm("Czy na pewno chcesz usunąć obraz?")) {
+        const xhr = new XMLHttpRequest();
+        xhr.open('DELETE', `/delete/${target}`, true);
+        xhr.send();
+        message = "Obraz został usunięty";
+        alert(message);
+        window.location.href = '/';
+    }
+}
+
+function renameImage(target) {
+    new_description = prompt("Podaj nową nazwę obrazu", config.description);
+    if (new_description != null && new_description != "" && new_description != config.description) {
+        const xhr = new XMLHttpRequest();
+        const formData = new FormData();
+        formData.append('description', new_description);
+        xhr.open('POST', `/rename/${target}`, true);
+        xhr.send(formData);
+    }
 }
 
 
@@ -265,14 +284,18 @@ function initMap(target, config) {
     var toolbox = L.control({ position: 'bottomleft' });
     toolbox.onAdd = function (map) {
         box = L.DomUtil.create('div', 'toolbox');
-        button = L.DomUtil.create('button', 'save-button');
-        button.innerHTML = "<img src='/icons/icons8-save-100.png'>";
-        button2 = L.DomUtil.create('button', 'delete-button');
-        button2.innerHTML = "<img src='/icons/icons8-delete-100.png'>";
-        box.appendChild(button);
-        box.appendChild(button2);
-        button.onclick = (e) => saveMarkers(rc, target);
-        button2.onclick = (e) => deleteImage(target);
+        save_button = L.DomUtil.create('button', 'save-button');
+        save_button.innerHTML = "<img src='/icons/icons8-save-100.png'>";
+        delete_button = L.DomUtil.create('button', 'delete-button');
+        delete_button.innerHTML = "<img src='/icons/icons8-delete-100.png'>";
+        edit_button = L.DomUtil.create('button', 'edit-button');
+        edit_button.innerHTML = "<img src='/icons/icons8-edit-property-100.png'>";
+        box.appendChild(save_button);
+        box.appendChild(edit_button);
+        box.appendChild(delete_button);
+        save_button.onclick = (e) => saveMarkers(rc, target);
+        delete_button.onclick = (e) => deleteImage(target);
+        edit_button.onclick = (e) => renameImage(target);
         return box;
     }
 
