@@ -44,11 +44,11 @@ function loadMapConfig() {
     const target = window.location.hash.substring(1);
     if (target == '') target = "default";
     fetch(`zoom/${target}.json`)
-            .then(response => response.json())
-            .then(config => initMap(target, config))
-            .catch(error => console.error(error));    
+        .then(response => response.json())
+        .then(config => initMap(target, config))
+        .catch(error => console.error(error));
 }
-  
+
 
 function loadIconsToDiv(data) {
     markerIconDiv.innerHTML = ''; // Clear existing icons
@@ -161,7 +161,7 @@ function deleteCurrentMarker() {
 }
 
 function addMarker(map, latlng, title, description, icon) {
-    console.log("ikony" ,icons);
+    console.log("ikony", icons);
     console.log(icon);
     var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
@@ -185,13 +185,58 @@ function addMarker(map, latlng, title, description, icon) {
     });
 }
 
-function loadMarkers(map, rc, markers) {    
+function loadMarkers(map, rc, markers) {
     console.log("load markers", markers);
     if (!markers) markers = [];
     markers.forEach(element => {
         addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
     });
 }
+
+function saveMarkers(rc, target) {
+    markersToSend = [];
+    markers.forEach(element => {
+        res = {};
+        res.x = rc.project(element.marker.getLatLng()).x;
+        res.y = rc.project(element.marker.getLatLng()).y;
+        res.title = element.title;
+        res.description = element.description;
+        res.icon = element.icon;
+        markersToSend.push(res);
+    });
+    markersToSend = JSON.stringify(markersToSend);
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+
+    formData.append('markers', markersToSend);
+
+    xhr.addEventListener('load', () => {
+        console.log(xhr);
+        const response = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+            console.log(response);
+        } else {
+            console.log(response);
+        }
+    });
+
+    xhr.addEventListener('error', () => {
+        console.log('Upload failed. Network error');
+    });
+
+    xhr.open('POST', `/markers/${target}`, true);
+    xhr.send(formData);
+}
+
+function deleteImage(target) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('DELETE', `/delete/${target}`, true);
+    xhr.send();
+    message = "Obraz został usunięty";
+    alert(message);
+    window.location.href = '/';
+}
+
 
 function initMap(target, config) {
     const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.min_zoom, maxZoom: config.max_zoom });
@@ -210,7 +255,7 @@ function initMap(target, config) {
             this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         }
         this.button.innerHTML += "<br><a href='/'>Strona główna</a>";
-       
+
         return this.button;
     };
     legend.addTo(map);
@@ -219,52 +264,28 @@ function initMap(target, config) {
 
     var toolbox = L.control({ position: 'bottomleft' });
     toolbox.onAdd = function (map) {
-        box= L.DomUtil.create('div', 'toolbox');
-        box.innerHTML += "<button id='save-button'><img src='/icons/icons8-save-100.png'></button>";
-        box.onclick = function (e) {
-            markersToSend = [];
-            markers.forEach(element => {
-                res = {};
-                res.x = rc.project(element.marker.getLatLng()).x;
-                res.y = rc.project(element.marker.getLatLng()).y;
-                res.title = element.title;
-                res.description = element.description;
-                res.icon = element.icon;    
-                markersToSend.push(res);  
-            });
-            markersToSend = JSON.stringify(markersToSend);
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            
-            formData.append('markers', markersToSend);
-
-            xhr.addEventListener('load', () => {
-                console.log(xhr);
-                const response = JSON.parse(xhr.responseText);
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    console.log(response);
-                } else {
-                    console.log(response);
-                }
-            });
-            
-            xhr.addEventListener('error', () => {
-                console.log('Upload failed. Network error');
-            });
-
-            xhr.open('POST',`/markers/${target}`, true);
-            xhr.send(formData);
-        }
+        box = L.DomUtil.create('div', 'toolbox');
+        button = L.DomUtil.create('button', 'save-button');
+        button.innerHTML = "<img src='/icons/icons8-save-100.png'>";
+        button2 = L.DomUtil.create('button', 'delete-button');
+        button2.innerHTML = "<img src='/icons/icons8-delete-100.png'>";
+        box.appendChild(button);
+        box.appendChild(button2);
+        button.onclick = (e) => saveMarkers(rc, target);
+        button2.onclick = (e) => deleteImage(target);
         return box;
     }
-    toolbox.addTo(map);
+
+    if (userdata.name) {
+        toolbox.addTo(map);
+    }
 
     const tiles = L.tileLayer(`/tiles/${target}/{z}/{x}/{y}.png`, {
         bounds: bounds,
         attribution: config.description
     }).addTo(map);
 
-    
+
     function onMapClick(event) {
         if (rc.getMaxBounds().contains(event.latlng)) {
             var coord = rc.project(event.latlng);

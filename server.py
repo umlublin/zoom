@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 from tiles import tile_split
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import shutil
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -152,6 +153,16 @@ def upload_file():
         'height': result['height'],
         'tile_size': result['tile_size']
     })
+
+@app.route("/delete/<uuid>", methods=['DELETE'])
+def delete_file(uuid):
+    if not session.get('user'):
+        return jsonify({'error': 'You need to be logged in to delete files'}), 403
+    FileUpload.query.filter_by(uuid=uuid).delete()
+    db.session.commit() 
+    folder=f"tiles/{uuid}"
+    shutil.rmtree(folder)
+    return jsonify({'success': True})
 
 @app.route("/zoom")
 def zoom():
