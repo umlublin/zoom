@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle dropped files
     dropArea.addEventListener('drop', (e) => {
-        if (userdata.email == null) {
+        if (userdata.nickname == null) {
             status.innerHTML = 'Please <a href="/login">login</a> first.';
             return;
         }
