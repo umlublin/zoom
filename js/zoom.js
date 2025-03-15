@@ -266,8 +266,10 @@ function initMap(target, config) {
 
     
     function onMapClick(event) {
-        var coord = rc.project(event.latlng);
-        addMarker(map, event.latlng, "nowy", "no description", "up-left");
+        if (rc.getMaxBounds().contains(event.latlng)) {
+            var coord = rc.project(event.latlng);
+            addMarker(map, event.latlng, "nowy", "no description", "up-left");
+        }
     }
     map.on('click', onMapClick);
 }
