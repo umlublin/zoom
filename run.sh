@@ -1,1 +1,1 @@
-./bin/python server.py
+/home/zoom/.venv/bin/python server.py

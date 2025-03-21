@@ -10,6 +10,9 @@ from tiles import tile_split
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import shutil
+import logging
+from logging.handlers import RotatingFileHandler
+from waitress import serve
 
 PUBLIC=0
 PRIVATE=1
@@ -19,7 +22,17 @@ if ENV_FILE:
     print("Load .env values from", ENV_FILE)
     load_dotenv(ENV_FILE)
 
+
+file_handler = RotatingFileHandler('/var/log/zoom_app.log', maxBytes=1024000, backupCount=10)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(levelname)s: %(message)s'
+))
+file_handler.setLevel(logging.INFO)
+
 app = Flask(__name__)
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+
 app.secret_key = env.get("APP_SECRET_KEY")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uploads.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -68,6 +81,13 @@ def get_user_data():
     if session.get('user'):
       userdata=session.get('user')['userinfo']
     return userdata
+
+@app.before_request
+def log_request_info():
+    #app.logger.info('Headers: %s', request.headers)
+    #app.logger.info('Body: %s', request.get_data())
+    app.logger.info('Method: %s, Path: %s', request.method, request.path)
+
 
 @app.route("/login")
 def login():
@@ -230,4 +250,6 @@ def home():
     return render_template("index.html", files=files, userdata=get_user_data())
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=env.get("PORT", 3000))
+    app.logger.info("Zoom aplication starting")
+    app.run(host="0.0.0.0", port=env.get("PORT", 3000), debug=True)
+    #serve(app, host="0.0.0.0", port=3000)

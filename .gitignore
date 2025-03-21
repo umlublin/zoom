@@ -1,8 +1,5 @@
 # Byte-compiled / optimized / DLL files
-include/
-bin/
-lib/
-lib64/
+demo.jpg
 tiles/
 __pycache__/
 *.py[cod]
