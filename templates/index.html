@@ -27,7 +27,7 @@
     {% for file in files %}
     <div>
       <a href="/zoom#{{ file.uuid }}">
-        <img src="/tiles/{{ file.uuid }}/preview.png" alt="{{ file.description }}" min-width="256" min-height="256" />
+        <img src="/tiles/{{ file.uuid }}/preview.jpg" alt="{{ file.description }}" min-width="256" min-height="256" />
       </a>
       {% if file.type==1 and file.login != userdata.sub %} 
       <img src="/icons/icons8-key.svg" alt="Protected" style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px;" />
@@ -40,7 +40,7 @@
     </div>
     {% endfor %}
   </div>
-  <footer>Icons by <a target="_blank" href="https://icons8.com">Icons8</a></footer>
+  <footer>Source code on <a href="https://github.com/umlublin/zoom">GitHub</a> Icons by <a target="_blank" href="https://icons8.com">Icons8</a></footer>
 </body>
 
 </html>

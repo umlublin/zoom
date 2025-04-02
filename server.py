@@ -6,7 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, jsonify, send_from_directory, request
 import uuid
 from werkzeug.utils import secure_filename
-from tiles import tile_split
+from ctiles import tile_split
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import shutil
@@ -154,8 +154,7 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
- 
-    result = tile_split(file.stream)
+    result = tile_split(file)
 
     db.session.add(FileUpload(uuid=result['uuid'], 
                               description=file.filename, 

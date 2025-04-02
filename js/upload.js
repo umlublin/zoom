@@ -1,5 +1,5 @@
 let userdata = {};
-let allowed_types = ['image/jpeg', 'image/png', 'image/tiff'];
+let allowed_types = ['image/jpeg'];
 
 // Fetch icons configuration
 fetch('userdata.json')
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (xhr.status >= 200 && xhr.status < 300) {
                 status.textContent = `Upload complete! File "${response.original_name}" saved".`;
                 status.style.color = 'green';
-                status.innerHTML += `<br><a href="/zoom#${response.uuid}"><img src="/tiles/${response.uuid}/preview.png"></a>`;
+                status.innerHTML += `<br><a href="/zoom#${response.uuid}"><img src="/tiles/${response.uuid}/preview.jpg"></a>`;
             } else {
                 status.textContent = `Upload failed "${response.error}".`;
                 status.style.color = 'red';

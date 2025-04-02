@@ -303,7 +303,7 @@ function initMap(target, config) {
         toolbox.addTo(map);
     }
 
-    const tiles = L.tileLayer(`/tiles/${target}/{z}/{x}/{y}.png`, {
+    const tiles = L.tileLayer(`/tiles/${target}/{z}/{x}/{y}.jpg`, {
         bounds: bounds,
         attribution: config.description
     }).addTo(map);
