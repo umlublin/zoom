@@ -78,7 +78,7 @@ int read_tile(char* filename, JSAMPROW *buffer) {
 
   FILE* infile = fopen(filename, "rb");
   if (!infile) {
-//        fprintf(stderr, "Nie można otworzyć pliku %s\n", filename);
+//      fprintf(stderr, "Nie można otworzyć pliku %s\n", filename);
         return 0;
   }
 
@@ -152,11 +152,9 @@ void free_buffer(JSAMPROW * data, int y_size/*256*/) {
 }
 
 void fill_black_raw(JSAMPROW * output, int components, int xmax, int ymax, int xoff, int yoff) {
-  for (int y =0; y<=xmax; y++) {
-     memset(output[yoff+y]+xoff, 0, ymax*components);
-//    for(int x=0; x<=ymax*components; x++) {
-//     output[yoff+y][xoff+x]=0;
-//    } 
+  xoff*=components;
+  for (int y =0; y<=ymax; y++) {
+    memset(output[yoff+y]+xoff, 0, xmax*components);
   }
 }
 
@@ -239,7 +237,6 @@ void resize_half(char * in_path, char * out_path, int tx, int ty, int components
   JSAMPROW* output = allocate_buffer(256, 256, components);
   char filename[100];
   snprintf(filename, 100, "%s/%d/%d.jpg", in_path, tx, ty);
-//  printf("read %s %d\n", filename, components);
   if (read_tile(filename, input)) {
     resize_tile(input, output, components, 0, 0);
   } else {
@@ -353,8 +350,8 @@ int main(int argc, char *argv[]) {
     int y_size=cinfo.output_height;
     for (int zl=zoom; zl>=1; zl--) {
      printf("Zoom %d Size(%d*%d) Tiles(%d*%d)\n",zl, x_size, y_size, x_tiles, y_tiles);
-     for (int x=0; x<=x_tiles; x+=2) {
-       for (int y=0; y<=y_tiles; y+=2) {
+     for (int x=0; x<x_tiles; x+=2) {
+       for (int y=0; y<y_tiles; y+=2) {
         //printf("%s->%s %d-%d\n", roots[zl],roots[zl-1], x,y);
         resize_half(roots[zl],roots[zl-1], x, y, cinfo.output_components);
        }
@@ -370,7 +367,7 @@ int main(int argc, char *argv[]) {
     FILE *f;
     char config[100];
     snprintf(config, 100, "%s/config.json", root);
-    f = fopen(config, "a");
+    f = fopen(config, "w");
     fprintf(f, "{\"width\": %d,\"height\": %d, \"max_zoom\": %d, \"tile_size\": 256}", cinfo.output_width, cinfo.output_height, zoom);
     fclose(f);
     return 0;

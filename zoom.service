@@ -1,0 +1,13 @@
+[Unit]
+Description=Flask Application
+After=network.target
+
+[Service]
+User=zoom
+WorkingDirectory=/home/zoom
+ExecStart=/home/zoom/.venv/bin/python server.py
+Restart=always
+Environment=FLASK_ENV=production
+
+[Install]
+WantedBy=multi-user.target

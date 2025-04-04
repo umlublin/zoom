@@ -30,7 +30,7 @@ fetch('userdata.json')
 fetch('icons/icons.json')
     .then(response => response.json())
     .then(data => {
-        console.log(data);
+        //console.log(data);
         icons = Object.keys(data).reduce((acc, key) => {
             acc[key] = L.icon(data[key]);
             return acc;
@@ -75,7 +75,7 @@ function loadIconsToDiv(data) {
 }
 
 function selectIcon(iconName) {
-    console.log(iconName)
+    //console.log(iconName)
     selectedIcon = iconName;
     resetIconSelection();
 
@@ -167,8 +167,8 @@ function deleteCurrentMarker() {
 }
 
 function addMarker(map, latlng, title, description, icon) {
-    console.log("ikony", icons);
-    console.log(icon);
+    //console.log("ikony", icons);
+    //console.log(icon);
     var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
         id: Date.now(), // Simple unique identifier
@@ -192,7 +192,7 @@ function addMarker(map, latlng, title, description, icon) {
 }
 
 function loadMarkers(map, rc, markers) {
-    console.log("load markers", markers);
+    //console.log("load markers", markers);
     if (!markers) markers = [];
     markers.forEach(element => {
         addMarker(map, rc.unproject([element.x, element.y]), element.title, element.description, element.icon);
@@ -217,7 +217,7 @@ function saveMarkers(rc, target) {
     formData.append('markers', markersToSend);
 
     xhr.addEventListener('load', () => {
-        console.log(xhr);
+        //console.log(xhr);
         const response = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) {
             console.log(response);
@@ -298,8 +298,7 @@ function initMap(target, config) {
         edit_button.onclick = (e) => renameImage(target);
         return box;
     }
-
-    if (userdata.name) {
+    if (userdata.sub==config.login) {
         toolbox.addTo(map);
     }
 

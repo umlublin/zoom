@@ -1,4 +1,5 @@
 # Byte-compiled / optimized / DLL files
+make_tiles
 demo.jpg
 tiles/
 __pycache__/

@@ -6,7 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, jsonify, send_from_directory, request
 import uuid
 from werkzeug.utils import secure_filename
-from ctiles import tile_split
+from ctiles import tile_split, tile_split_file
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import shutil
@@ -23,7 +23,7 @@ if ENV_FILE:
     load_dotenv(ENV_FILE)
 
 
-file_handler = RotatingFileHandler('/var/log/zoom_app.log', maxBytes=1024000, backupCount=10)
+file_handler = RotatingFileHandler(env.get("LOG_ROOT")+'zoom_app.log', maxBytes=1024000, backupCount=10)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s'
 ))
@@ -36,7 +36,7 @@ app.logger.setLevel(logging.INFO)
 app.secret_key = env.get("APP_SECRET_KEY")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uploads.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 16 MB limit
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB
 MY_URL = env.get("MY_URL")
 
 db = SQLAlchemy(app)
@@ -86,7 +86,9 @@ def get_user_data():
 def log_request_info():
     #app.logger.info('Headers: %s', request.headers)
     #app.logger.info('Body: %s', request.get_data())
-    app.logger.info('Method: %s, Path: %s', request.method, request.path)
+    email=get_user_data().get("email","")
+    ip=request.headers['X-Real-Ip']
+    app.logger.info('%s (%s) %s %s', ip, email, request.method, request.path)
 
 
 @app.route("/login")
@@ -182,7 +184,11 @@ def upload_file():
 @app.route("/rename/<uuid>", methods=['POST'])
 def rename_image(uuid):
     if not is_logged_in():
-        return jsonify({'error': 'You need to be logged in to rename files'}), 403  
+        return jsonify({'error': 'You need to be logged in to rename files'}), 401
+    file = FileUpload.query.filter_by(uuid=uuid).first()
+    login = get_user_data()['sub']
+    if (file.login!=login):
+        return jsonify({'error': 'Forbidden'}), 403
     FileUpload.query.filter_by(uuid=uuid).update(dict(description=request.form['description']))
     db.session.commit()
     return jsonify({'success': True})
@@ -190,7 +196,13 @@ def rename_image(uuid):
 @app.route("/delete/<uuid>", methods=['DELETE'])
 def delete_image(uuid):
     if not is_logged_in():
-        return jsonify({'error': 'You need to be logged in to delete files'}), 403
+        return jsonify({'error': 'You need to be logged in to delete files'}), 401
+
+    file = FileUpload.query.filter_by(uuid=uuid).first()
+    login = get_user_data()['sub']
+    if (file.login!=login):
+        return jsonify({'error': 'Forbidden'}), 403
+
     FileUpload.query.filter_by(uuid=uuid).delete()
     db.session.commit() 
     folder=f"tiles/{uuid}"
@@ -204,9 +216,14 @@ def zoom():
 @app.route("/markers/<uuid>", methods=['POST'])
 def upload_markers(uuid):
     if not is_logged_in():
-        return jsonify({'error': 'You need to be logged in to upload markers'}), 403
-    print("uuid", uuid)
-    print("request", request.form)
+        return jsonify({'error': 'You need to be logged in to upload markers'}), 401
+
+    file = FileUpload.query.filter_by(uuid=uuid).first()
+    #TODO public marker edit possible
+    login = get_user_data()['sub']
+    if (file.login!=login):
+        return jsonify({'error': 'Forbidden'}), 403
+
     FileUpload.query.filter_by(uuid=uuid).update(dict(markers=request.form['markers']))
     db.session.commit()
     return jsonify({'success': True})
@@ -236,6 +253,7 @@ def zoom_json(uuid):
         'max_zoom': file.max_zoom,
         'tile_size': file.tile_size,
         'markers': file.markers,
+        'login': file.login,
         'upload_date': file.upload_date.strftime('%Y-%m-%d %H:%M:%S')
     })
 
@@ -248,7 +266,25 @@ def home():
     files = FileUpload.query.order_by(FileUpload.upload_date.desc()).all()
     return render_template("index.html", files=files, userdata=get_user_data())
 
+def upload_file(file_path):
+    
+    result = tile_split_file(file_path)
+   
+    with app.app_context():
+      db.session.add(FileUpload(uuid=result['uuid'], 
+                              description=file_path, 
+                              width=result['width'], 
+                              height=result['height'],
+                              min_zoom=result['min_zoom'],
+                              max_zoom=result['max_zoom'],
+                              tile_size=result['tile_size'],
+                              uploader="internal",
+                              login="internal",
+                              type=PUBLIC))
+      db.session.commit()
+
+
 if __name__ == "__main__":
     app.logger.info("Zoom aplication starting")
-    app.run(host="0.0.0.0", port=env.get("PORT", 3000), debug=True)
-    #serve(app, host="0.0.0.0", port=3000)
+    #app.run(host="0.0.0.0", port=env.get("PORT", 3000), debug=True)
+    serve(app, host="0.0.0.0", port=3000)

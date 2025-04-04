@@ -1,0 +1,1 @@
+sudo cp zoom.service /etc/systemd/system/zoom.service
