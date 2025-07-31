@@ -2,6 +2,7 @@
 make_tiles
 demo.jpg
 tiles/
+logs/
 __pycache__/
 *.py[cod]
 *$py.class

@@ -273,6 +273,7 @@ function initMap(target, config) {
         else {
             this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         }
+        this.button.innerHTML += `<br><a href='/tiles/${target}/full.jpg'>Pobierz obraz</a>`;
         this.button.innerHTML += "<br><a href='/'>Strona główna</a>";
 
         return this.button;
