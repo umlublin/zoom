@@ -6,7 +6,7 @@ from dotenv import find_dotenv, load_dotenv
 from flask import Flask, redirect, render_template, session, jsonify, send_from_directory, request
 import uuid
 from werkzeug.utils import secure_filename
-from ctiles import tile_split, tile_split_file
+from ctiles import tile_split
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import shutil
@@ -38,6 +38,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///uploads.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB
 MY_URL = env.get("MY_URL")
+DATA_ROOT = env.get("DATA_ROOT", "./")
 
 db = SQLAlchemy(app)
 
@@ -87,7 +88,7 @@ def log_request_info():
     #app.logger.info('Headers: %s', request.headers)
     #app.logger.info('Body: %s', request.get_data())
     email=get_user_data().get("email","")
-    ip=request.headers['X-Real-Ip']
+    ip=request.headers.get('X-Real-Ip','0.0.0.0')
     app.logger.info('%s (%s) %s %s', ip, email, request.method, request.path)
 
 
@@ -120,19 +121,19 @@ def logout():
 
 @app.route('/js/<path:path>')
 def send_js(path):
-    return send_from_directory('js', path)
+    return send_from_directory(DATA_ROOT +'js', path)
 
 @app.route('/icons/<path:path>')
 def send_icons(path):
-    return send_from_directory('icons', path)
+    return send_from_directory(DATA_ROOT + 'icons', path)
 
 @app.route('/tiles/<path:path>')
 def send_tiles(path):
-    return send_from_directory('tiles', path)
+    return send_from_directory(DATA_ROOT + 'tiles', path)
 
 @app.route('/css/<path:path>')
 def send_css(path):
-    return send_from_directory('css', path)
+    return send_from_directory(DATA_ROOT + 'css', path)
 
 @app.route("/userdata.json")
 def userdata():
@@ -152,11 +153,10 @@ def upload_file():
         return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
-    print("file", file)
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    result = tile_split(file)
+    result = tile_split(file, DATA_ROOT)
 
     db.session.add(FileUpload(uuid=result['uuid'], 
                               description=file.filename, 
@@ -205,7 +205,7 @@ def delete_image(uuid):
 
     FileUpload.query.filter_by(uuid=uuid).delete()
     db.session.commit() 
-    folder=f"tiles/{uuid}"
+    folder=DATA_ROOT + f"tiles/{uuid}"
     shutil.rmtree(folder)
     return jsonify({'success': True})
 
@@ -266,9 +266,10 @@ def home():
     files = FileUpload.query.order_by(FileUpload.upload_date.desc()).all()
     return render_template("index.html", files=files, userdata=get_user_data())
 
+# For manuall file upload
 def upload_file(file_path):
     
-    result = tile_split_file(file_path)
+    result = tile_split(file_path, DATA_ROOT)
    
     with app.app_context():
       db.session.add(FileUpload(uuid=result['uuid'], 

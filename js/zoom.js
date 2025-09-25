@@ -160,6 +160,7 @@ function deleteCurrentMarker() {
     const index = markers.findIndex(m => m.id === currentMarker.id);
     if (index !== -1) {
         markers.splice(index, 1);
+        console.log(index, "deleted");
     }
 
     hideForm();
