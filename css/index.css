@@ -44,6 +44,17 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
 
+
+  .image-filter {
+    position: absolute;
+    top: 100px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
   .image-preview {
     display: flex;
     font-size: smaller;
@@ -87,11 +98,11 @@ body {
     width: 100%;
     background: rgba(0, 0, 0, 0.6);
     color: white;
-    padding: 10px;
+    padding: 1px;
     box-sizing: border-box;
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
-    transform: translateY(100%);
+    /*transform: translateY(100%);*/
     transition: transform 0.3s ease-in-out;
   }
 

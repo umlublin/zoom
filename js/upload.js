@@ -2,7 +2,7 @@ let userdata = {};
 let allowed_types = ['image/jpeg'];
 
 // Fetch icons configuration
-fetch('userdata.json')
+fetch('/api/userdata.json')
     .then(response => response.json())
     .then(data => {
         userdata = data;

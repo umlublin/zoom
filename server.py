@@ -35,6 +35,7 @@ DATA_ROOT = env.get("DATA_ROOT", "./")
 
 db = SQLAlchemy(app)
 
+
 class FileType(db.Model):
     __tablename__ = 'file_types'
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +43,7 @@ class FileType(db.Model):
     description = db.Column(db.String(200), nullable=True)
     # Relacja zwrotna do FileUpload
     files = db.relationship('FileUpload', backref='file_type', lazy=True)
+
     def __repr__(self):
         return f'<FileType {self.name}>'
 
@@ -82,7 +84,6 @@ with app.app_context():
 
         db.session.commit()
         print("Typy plików zostały dodane!")
-
 
 oauth = OAuth(app)
 
@@ -171,6 +172,7 @@ def send_css(path):
 def userdata():
     return jsonify(get_user_data())
 
+
 @app.route("/api/types.json")
 def api_types():
     types = db.session.query(FileType).all()
@@ -250,11 +252,6 @@ def delete_image(uuid):
     return jsonify({'success': True})
 
 
-@app.route("/zoom")
-def zoom():
-    return send_from_directory("web", "zoom.html")
-
-
 @app.route("/markers/<uuid>", methods=['POST'])
 def upload_markers(uuid):
     if not is_logged_in():
@@ -302,15 +299,40 @@ def zoom_json(uuid):
     })
 
 
+@app.route("/api/files/<page>")
+def api_files(page):
+    files = FileUpload.query.join(FileType).order_by(FileUpload.upload_date.desc()).all()
+    return jsonify({"nextPage": False,
+                    "items": [{
+                        'uuid': file.uuid,
+                        'type': file.type,
+                        'type_name': file.file_type.name,
+                        'description': file.description,
+                        'width': file.width,
+                        'height': file.height,
+                        'min_zoom': file.min_zoom,
+                        'max_zoom': file.max_zoom,
+                        'tile_size': file.tile_size,
+                        'markers': file.markers,
+                        'uploader': file.uploader,
+                        'upload_date': file.upload_date.strftime('%Y-%m-%d %H:%M:%S')
+                    } for file in files
+                    ]})
+
+
 @app.route("/upload")
 def upload_html():
     return render_template("upload.html", userdata=get_user_data())
 
 
+@app.route("/zoom")
+def zoom():
+    return send_from_directory("web", "zoom.html")
+
+
 @app.route("/")
 def home():
-    files = FileUpload.query.join(FileType).order_by(FileUpload.upload_date.desc()).all()
-    return render_template("index.html", files=files, userdata=get_user_data())
+    return send_from_directory("web", "index.html")
 
 
 # For manuall file upload
