@@ -167,9 +167,14 @@ def send_css(path):
     return send_from_directory(DATA_ROOT + 'css', path)
 
 
-@app.route("/userdata.json")
+@app.route("/api/userdata.json")
 def userdata():
     return jsonify(get_user_data())
+
+@app.route("/api/types.json")
+def api_types():
+    types = db.session.query(FileType).all()
+    return jsonify([{'id': typ.id, 'name': typ.name} for typ in types])
 
 
 @app.errorhandler(400)
@@ -215,7 +220,7 @@ def upload_file():
     })
 
 
-@app.route("/rename/<uuid>", methods=['POST'])
+@app.route("/api/edit/<uuid>", methods=['POST'])
 def rename_image(uuid):
     if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to rename files'}), 401
@@ -228,7 +233,7 @@ def rename_image(uuid):
     return jsonify({'success': True})
 
 
-@app.route("/delete/<uuid>", methods=['DELETE'])
+@app.route("/api/delete/<uuid>", methods=['DELETE'])
 def delete_image(uuid):
     if not is_logged_in():
         return jsonify({'error': 'You need to be logged in to delete files'}), 401
@@ -284,6 +289,7 @@ def zoom_json(uuid):
         return jsonify({'error': 'No such file'}), 404
     return jsonify({
         'uuid': file.uuid,
+        'type': file.type,
         'description': file.description,
         'width': file.width,
         'height': file.height,

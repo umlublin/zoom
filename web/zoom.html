@@ -20,7 +20,7 @@
 
 <body>
     <div class="marker-form" id="marker-form">
-        <h2 id="form-title">Dodaj znacznik</h2>
+        <h3 id="form-title">Dodaj znacznik</h3>
         <div class="form-group">
             <label for="marker-title">Nazwa:</label>
             <input type="text" id="marker-title" placeholder="Enter title">
@@ -37,6 +37,23 @@
             <button id="save-marker" class="primary">Zapis</button>
             <button id="cancel-marker" class="tertiary">Anuluj</button>
             <button id="delete-marker" class="secondary">Kasuj</button>
+        </div>
+    </div>
+    <div class="image-form" id="image-form">
+        <h3 id="image-form-title">Edytuj obraz</h3>
+        <input type="hidden" id="image-uuid" value="">
+        <div class="form-group">
+            <label for="image-title">Nazwa:</label>
+            <input type="text" id="image-title" placeholder="Enter title">
+        </div>
+        <div class="form-group">
+            <label for="image-type">Typ:</label>
+            <select id="image-type"></select>
+        </div>
+        <div class="button-group">
+            <button id="save-image" class="primary">Zapis</button>
+            <button id="cancel-image" class="tertiary">Anuluj</button>
+            <button id="delete-image" class="secondary">Kasuj</button>
         </div>
     </div>
     <div class="overlay" id="overlay"></div>

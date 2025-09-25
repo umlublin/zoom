@@ -1,13 +1,11 @@
-const markerForm = document.getElementById('marker-form');
 const overlay = document.getElementById('overlay');
-const formTitle = document.getElementById('form-title');
+// Marker form
+const markerForm = document.getElementById('marker-form');
 const markerTitleInput = document.getElementById('marker-title');
 const markerDescriptionInput = document.getElementById('marker-description');
-const saveMarkerBtn = document.getElementById('save-marker');
-const cancelMarkerBtn = document.getElementById('cancel-marker');
-const deleteMarkerBtn = document.getElementById('delete-marker');
 const markerIconDiv = document.getElementById('marker-icon');
-const saveButton = document.getElementById('save-button');
+// Image form
+const imageForm = document.getElementById('image-form');
 
 // Variables
 let markers = [];
@@ -15,16 +13,24 @@ let currentMarker = null;
 let selectedIcon = 'default';
 let config = {};
 let icons = {};
-let userdata = {};
+let userdata = {}
+let imageTypes = {};
 
-// Fetch icons configuration
-fetch('userdata.json')
+// Fetch userdata
+fetch('api/userdata.json')
     .then(response => response.json())
     .then(data => {
         userdata = data;
     })
     .catch(error => console.error('Error loading userdata:', error));
 
+// Fetch image types
+fetch('api/types.json')
+    .then(response => response.json())
+    .then(data => {
+        imageTypes = data;
+    })
+    .catch(error => console.error('Error loading userdata:', error));
 
 // Fetch icons configuration
 fetch('icons/icons.json')
@@ -46,11 +52,11 @@ function loadMapConfig() {
     fetch(`zoom/${target}.json`)
         .then(response => response.json())
         .then(config_json => {
-            config = config_json;
-            document.title = `Mark & Zoom : ${config.description}`;
-            // document.getElementById("title").innerHTML = config.title;
-            initMap(target, config)
-        }
+                config = config_json;
+                document.title = `Mark & Zoom : ${config.description}`;
+                // document.getElementById("title").innerHTML = config.title;
+                initMap(target, config)
+            }
         )
         .catch(error => console.error(error));
 }
@@ -91,10 +97,10 @@ function resetIconSelection() {
     //selectedIcon = 'default';
 }
 
-function showForm(isEdit = false) {
+function showMarkerForm(isEdit = false) {
     overlay.classList.add('active');
     markerForm.classList.add('active');
-
+    formTitle = document.getElementById('form-title');
     if (isEdit) {
         formTitle.textContent = 'Edit Marker';
         deleteMarkerBtn.style.display = 'block';
@@ -126,15 +132,7 @@ function updateMarker() {
     currentMarker = null;
 }
 
-function editMarker(markerData) {
-    currentMarker = markerData;
-    markerTitleInput.value = markerData.title;
-    markerDescriptionInput.value = markerData.description;
-    selectIcon(markerData.icon);
-    showForm(true);
-}
-
-saveMarkerBtn.addEventListener('click', function () {
+document.getElementById('save-marker').addEventListener('click', function () {
     if (currentMarker && currentMarker.id) {
         updateMarker();
     } else if (currentMarker && currentMarker.latlng) {
@@ -143,15 +141,22 @@ saveMarkerBtn.addEventListener('click', function () {
         currentMarker = null;
     }
 });
-
-cancelMarkerBtn.addEventListener('click', function () {
+document.getElementById('cancel-marker').addEventListener('click', function () {
     hideForm();
     currentMarker = null;
 });
-
-deleteMarkerBtn.addEventListener('click', function () {
+document.getElementById('delete-marker').addEventListener('click', function () {
     deleteCurrentMarker();
 });
+
+
+function editMarker(markerData) {
+    currentMarker = markerData;
+    markerTitleInput.value = markerData.title;
+    markerDescriptionInput.value = markerData.description;
+    selectIcon(markerData.icon);
+    showMarkerForm(true);
+}
 
 function deleteCurrentMarker() {
     if (!currentMarker) return;
@@ -170,7 +175,10 @@ function deleteCurrentMarker() {
 function addMarker(map, latlng, title, description, icon) {
     //console.log("ikony", icons);
     //console.log(icon);
-    var marker = L.marker(latlng, { draggable: true, icon: icons[icon] }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
+    var marker = L.marker(latlng, {
+        draggable: true,
+        icon: icons[icon]
+    }).addTo(map).bindPopup(`<b>${title}</b><br>${description}`);
     const markerData = {
         id: Date.now(), // Simple unique identifier
         marker: marker,
@@ -238,7 +246,7 @@ function saveMarkers(rc, target) {
 function deleteImage(target) {
     if (confirm("Czy na pewno chcesz usunąć obraz?")) {
         const xhr = new XMLHttpRequest();
-        xhr.open('DELETE', `/delete/${target}`, true);
+        xhr.open('DELETE', `/api/delete/${target}`, true);
         xhr.send();
         message = "Obraz został usunięty";
         alert(message);
@@ -246,32 +254,61 @@ function deleteImage(target) {
     }
 }
 
-function renameImage(target) {
-    new_description = prompt("Podaj nową nazwę obrazu", config.description);
-    if (new_description != null && new_description != "" && new_description != config.description) {
+document.getElementById('save-image').addEventListener('click', function () {
+    overlay.classList.remove('active');
+    imageForm.classList.remove('active');
+    target = document.getElementById('image-uuid').value
+    new_description = document.getElementById('image-title').value
+    new_type = select.value
+    if (new_description != "") {
         const xhr = new XMLHttpRequest();
         const formData = new FormData();
         formData.append('description', new_description);
-        xhr.open('POST', `/rename/${target}`, true);
+        formData.append('type', new_type);
+        xhr.open('POST', `/api/edit/${target}`, true);
         xhr.send(formData);
+        config.description = new_description;
+        config.type = new_type;
     }
+});
+document.getElementById('cancel-image').addEventListener('click', function () {
+    overlay.classList.remove('active');
+    imageForm.classList.remove('active');
+});
+
+function renameImage(config, target) {
+    document.getElementById('image-title').value = config.description;
+    document.getElementById('image-uuid').value = target;
+    select = document.getElementById('image-type');
+    select.replaceChildren();
+    imageTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.id;
+        option.textContent = type.name;
+        select.appendChild(option);
+    });
+
+    select.value = config.type;
+    overlay.classList.add('active');
+    imageForm.classList.add('active');
+    document.getElementById('delete-image').style.display = 'none';
+    // new_description = prompt("Podaj nową nazwę obrazu", config.description);
 }
 
 
 function initMap(target, config) {
-    const map = L.map('map', { crs: L.CRS.Simple, minZoom: config.min_zoom, maxZoom: config.max_zoom });
+    const map = L.map('map', {crs: L.CRS.Simple, minZoom: config.min_zoom, maxZoom: config.max_zoom});
     var rc = new L.RasterCoords(map, [config.width, config.height]);
     bounds = rc.getMaxBounds();
     map.setView(bounds.getCenter(), 3);
 
-    var legend = L.control({ position: 'topleft' });
+    var legend = L.control({position: 'topleft'});
     legend.onAdd = function (map) {
         this.button = L.DomUtil.create('button', 'info');
         if (userdata.name) {
             this.button.innerHTML = `<img src="${userdata.picture}"><br>${userdata.name}<a href='/logout'><br>Wyloguj</a>`;
             this.button.innerHTML += "<br><a href='/upload'>Dodaj nowy obraz</a>";
-        }
-        else {
+        } else {
             this.button.innerHTML = "<a href='/login'>Zaloguj</a>";
         }
         this.button.innerHTML += `<br><a href='/tiles/${target}/full.jpg'>Pobierz obraz</a>`;
@@ -283,7 +320,7 @@ function initMap(target, config) {
 
     loadMarkers(map, rc, JSON.parse(config.markers));
 
-    var toolbox = L.control({ position: 'bottomleft' });
+    var toolbox = L.control({position: 'bottomleft'});
     toolbox.onAdd = function (map) {
         box = L.DomUtil.create('div', 'toolbox');
         save_button = L.DomUtil.create('button', 'save-button');
@@ -297,10 +334,10 @@ function initMap(target, config) {
         box.appendChild(delete_button);
         save_button.onclick = (e) => saveMarkers(rc, target);
         delete_button.onclick = (e) => deleteImage(target);
-        edit_button.onclick = (e) => renameImage(target);
+        edit_button.onclick = (e) => renameImage(config, target);
         return box;
     }
-    if (userdata.sub==config.login) {
+    if (userdata.sub == config.login) {
         toolbox.addTo(map);
     }
 
@@ -316,6 +353,7 @@ function initMap(target, config) {
             addMarker(map, event.latlng, "nowy", "no description", "up-left");
         }
     }
+
     map.on('click', onMapClick);
 }
 
