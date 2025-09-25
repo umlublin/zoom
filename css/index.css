@@ -46,6 +46,7 @@ body {
 
   .image-preview {
     display: flex;
+    font-size: smaller;
     flex-wrap: wrap;
     justify-content: center;
     gap: 20px;
