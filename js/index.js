@@ -10,14 +10,13 @@ function updateUserData(userdata, imageTypes) {
     if (!userdata.nickname) {
         container.insertAdjacentHTML('beforeend', '<a href="/login">Login</a><br>');
     } else {
-        container.insertAdjacentHTML('beforeend', `${userdata.nickname}<br>`);
-        container.insertAdjacentHTML('beforeend', '<a href="/logout">Logout</a><br>');
+        container.insertAdjacentHTML('beforeend', `${userdata.nickname} :: <a href="/logout">Logout</a><br>`);
         container.insertAdjacentHTML('beforeend', '<a href="/upload">Upload</a><br>');
     }
 
     select = document.getElementById('type-filter');
     select.replaceChildren();
-    select.innerHTML = "<option value='-1'>Dowolny</option>"
+    select.innerHTML = "<option value='-1'>Dowolny typ</option>"
     imageTypes.forEach(item_type => {
         const option = document.createElement('option');
         option.value = item_type.id;

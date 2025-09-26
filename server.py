@@ -18,6 +18,10 @@ if ENV_FILE:
     print("Load .env values from", ENV_FILE)
     load_dotenv(ENV_FILE)
 
+admins = []
+admins.append(env.get('ADMIN_SID'))
+admins.append(env.get('ADMIN_SID_BACKUP'))
+
 file_handler = RotatingFileHandler(env.get("LOG_ROOT") + 'zoom_app.log', maxBytes=1024000, backupCount=10)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s'
@@ -110,6 +114,11 @@ def get_user_data():
     userdata = {}
     if session.get('user'):
         userdata = session.get('user')['userinfo']
+        if userdata.get('sub') in admins:
+            userdata['is_admin'] = True
+        else:
+            userdata['is_admin'] = False
+
     return userdata
 
 
