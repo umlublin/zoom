@@ -11,6 +11,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 from waitress import serve
 
+ITEMS_PER_PAGE = 20
+
 ENV_FILE = find_dotenv()
 if ENV_FILE:
     print("Load .env values from", ENV_FILE)
@@ -76,7 +78,9 @@ with app.app_context():
             FileType(id=0, name='Nieznane', description='Nieznane'),
             FileType(name='Zdjęcie', description='Standardowe zdjęcie'),
             FileType(name='Mapa', description='Mapa terenu'),
-            FileType(name='Zdjęcie lotnicze', description='Zdjęcie wykonane z lotu ptaka')
+            FileType(name='Zdjęcie lotnicze', description='Zdjęcie wykonane z lotu ptaka'),
+            FileType(name='Zdjęcie panoramiczne', description='Zdjęcie połączone z wielu zdjęć'),
+            FileType(name='Rysunek', description='Rysunek')
         ]
 
         for file_type in types:
@@ -230,7 +234,8 @@ def rename_image(uuid):
     login = get_user_data()['sub']
     if (file.login != login):
         return jsonify({'error': 'Forbidden'}), 403
-    FileUpload.query.filter_by(uuid=uuid).update(dict(description=request.form['description']))
+    FileUpload.query.filter_by(uuid=uuid).update(
+        dict(description=request.form['description'], type=request.form['type']))
     db.session.commit()
     return jsonify({'success': True})
 
@@ -299,10 +304,20 @@ def zoom_json(uuid):
     })
 
 
-@app.route("/api/files/<page>")
-def api_files(page):
-    files = FileUpload.query.join(FileType).order_by(FileUpload.upload_date.desc()).all()
-    return jsonify({"nextPage": False,
+@app.route("/api/files/<int:page>")
+def api_files(page: int):
+    type = request.args.get('type', -1, type=int)
+    query = FileUpload.query.join(FileType)
+    if type != -1:
+        query = query.filter(FileUpload.type == type)
+
+    files_paginated = query.order_by(FileUpload.upload_date.desc()).paginate(page=page, per_page=ITEMS_PER_PAGE,
+                                                                             error_out=False)
+    files = files_paginated.items
+    return jsonify({"nextPage": files_paginated.has_next,
+                    "pageSize": ITEMS_PER_PAGE,
+                    "totalItems": files_paginated.total,
+                    "totalPages": files_paginated.pages,
                     "items": [{
                         'uuid': file.uuid,
                         'type': file.type,

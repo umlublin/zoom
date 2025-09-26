@@ -1,28 +1,56 @@
 // Minimal client-side dynamic loading with pagination
-let page = 0;
+let page = 1;
 let loading = false;
 let done = false;
-let type = -1;
+let type = -1; //default type
+
+function updateUserData(userdata, imageTypes) {
+    container = document.getElementById("user-info-frame")
+    container.replaceChildren()
+    if (!userdata.nickname) {
+        container.insertAdjacentHTML('beforeend', '<a href="/login">Login</a><br>');
+    } else {
+        container.insertAdjacentHTML('beforeend', `${userdata.nickname}<br>`);
+        container.insertAdjacentHTML('beforeend', '<a href="/logout">Logout</a><br>');
+        container.insertAdjacentHTML('beforeend', '<a href="/upload">Upload</a><br>');
+    }
+
+    select = document.getElementById('type-filter');
+    select.replaceChildren();
+    select.innerHTML = "<option value='-1'>Dowolny</option>"
+    imageTypes.forEach(item_type => {
+        const option = document.createElement('option');
+        option.value = item_type.id;
+        option.textContent = item_type.name;
+        option.selected = (item_type.id == type);
+        select.appendChild(option);
+    });
+}
+
+async function loadUSerData() {
+    let res = await fetch(`/api/userdata.json`, {headers: {'Accept': 'application/json'}});
+    if (!res.ok) throw new Error('Failed to load');
+    let userData = await res.json();
+    res = await fetch(`/api/types.json`, {headers: {'Accept': 'application/json'}});
+    if (!res.ok) throw new Error('Failed to load');
+    let filterData = await res.json();
+    updateUserData(userData, filterData)
+}
 
 async function loadMore(reload) {
-    if (reload) done = false;
+    if (reload) {
+        done = false;
+        page = 1;
+    }
     if (loading || done) return;
     loading = true;
     const btn = document.getElementById('load-more');
     if (btn) btn.textContent = 'Loading...';
     try {
-        let res = await fetch(`/api/userdata.json`, {headers: {'Accept': 'application/json'}});
-        if (!res.ok) throw new Error('Failed to load');
-        let data = await res.json();
-        appendUserData(data)
-        res = await fetch(`/api/types.json`, {headers: {'Accept': 'application/json'}});
-        if (!res.ok) throw new Error('Failed to load');
-        data = await res.json();
-        appendFilterData(data)
         res = await fetch(`/api/files/${page}?type=${type}`, {headers: {'Accept': 'application/json'}});
         if (!res.ok) throw new Error('Failed to load');
         data = await res.json(); // expected: { items: [...], nextPage: true/false }
-        appendItems(data.items || []);
+        appendItems(data.items || [], reload);
         page += 1;
         done = data.nextPage === false || (data.items || []).length === 0;
         if (btn) btn.style.display = done ? 'none' : 'inline-block';
@@ -38,8 +66,9 @@ async function loadMore(reload) {
     }
 }
 
-function appendItems(items) {
-    const container = document.querySelector('.image-preview');
+function appendItems(items, reload) {
+    const container = document.getElementById('image-preview');
+    if (reload) container.replaceChildren();
     if (!container) return;
     for (const file of items) {
         const card = document.createElement('div');
@@ -92,29 +121,6 @@ function appendItems(items) {
     }
 }
 
-function appendFilterData(imageTypes) {
-    select = document.getElementById('type-filter');
-    select.replaceChildren();
-    select.innerHTML = "<option>Dowolny</option>"
-    imageTypes.forEach(type => {
-        const option = document.createElement('option');
-        option.value = type.id;
-        option.textContent = type.name;
-        select.appendChild(option);
-    });
-}
-
-function appendUserData(userdata) {
-    container = document.getElementById("user-info")
-    if (!userdata.nickname) {
-        container.insertAdjacentHTML('beforeend', '<a href="/login">Login</a>');
-    } else {
-        container.insertAdjacentHTML('beforeend', `${userdata.nickname}<br>`);
-        container.insertAdjacentHTML('beforeend', '<a href="/logout">Logout</a><br>');
-        container.insertAdjacentHTML('beforeend', '<a href="/upload">Upload</a>');
-    }
-}
-
 function truncate(str, n) {
     if (!str) return '';
     return str.length > n ? str.slice(0, n - 1) + '…' : str;
@@ -132,6 +138,7 @@ function setupInfiniteScroll() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadUSerData()
     loadMore();
     setupInfiniteScroll();
     const btn = document.getElementById('load-more');
@@ -139,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('type-filter').addEventListener("change", (target) => {
         console.log(target.target.value);
-        type=target.target.value;
+        type = target.target.value;
         loadMore(true);
     })
 });
